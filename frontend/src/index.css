@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Dark theme (default) */
+  --bg-primary: #0f1117;
+  --bg-secondary: rgba(17, 24, 39, 0.8);
+  --bg-tertiary: rgba(15, 23, 42, 0.6);
+  --text-primary: #f8fafc;
+  --text-secondary: #e4e4e7;
+  --text-tertiary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --shadow-sm: rgba(0, 0, 0, 0.2);
+  --shadow-md: rgba(0, 0, 0, 0.5);
+  --grid-color: rgba(99, 102, 241, 0.03);
+  --gradient-start: rgba(99, 102, 241, 0.08);
+  --gradient-end: rgba(59, 130, 246, 0.08);
+}
+
+[data-theme="light"] {
+  /* Light theme */
+  --bg-primary: #f8fafc;
+  --bg-secondary: rgba(255, 255, 255, 0.9);
+  --bg-tertiary: rgba(248, 250, 252, 0.8);
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-tertiary: #64748b;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --shadow-sm: rgba(0, 0, 0, 0.1);
+  --shadow-md: rgba(0, 0, 0, 0.15);
+  --grid-color: rgba(99, 102, 241, 0.05);
+  --gradient-start: rgba(99, 102, 241, 0.05);
+  --gradient-end: rgba(59, 130, 246, 0.05);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  color: var(--text-secondary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Subtle animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 30s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Courier New', 'Monaco', 'Consolas', monospace;
+}

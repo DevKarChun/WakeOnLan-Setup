@@ -1,0 +1,8 @@
+{
+  "short_name": "DKC WOL",
+  "name": "DKC Wake-On-Lan",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#0f172a"
+}

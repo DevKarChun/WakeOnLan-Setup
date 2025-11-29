@@ -98,6 +98,8 @@ PC_MAC=00:11:22:33:44:55
 PC_IP=192.168.100.1
 PC_STATUS_IP=192.168.0.153
 BROADCAST=192.168.100.3
+WOL_INTERFACE=ens4
+STATUS_INTERFACE=ens3
 PORT=13579
 ```
 
@@ -105,16 +107,48 @@ PORT=13579
 - `PC_MAC`: The MAC address of your target PC's network interface
 - `PC_IP`: The IP address of your target PC on the **internal network** (e.g., `192.168.100.1`). Used for WOL packets.
 - `PC_STATUS_IP`: The IP address of your target PC on the **public network** (e.g., `192.168.0.153`). Used for status checks (ping). If not set, falls back to `PC_IP`.
-- `BROADCAST`: The internal network IP address of the server (e.g., `192.168.100.3`). Used for routing WOL packets and SSH connections through the internal network.
+- `BROADCAST`: The internal network IP address of the server (e.g., `192.168.100.3`). Used as fallback for interface binding if interface names are not available.
+- `WOL_INTERFACE`: The network interface name to use for sending WOL packets (e.g., `ens4`). Defaults to `ens4` if not set. **Important:** This should be the interface connected to the internal/private network (192.168.100.x).
+- `STATUS_INTERFACE`: The network interface name to use for status checks (e.g., `ens3`). Defaults to `ens3` if not set. **Important:** This should be the interface connected to the public/LAN network (192.168.0.x).
 - `PORT`: The port number for the backend API server (default: 13579). Change this if port 13579 is already in use.
+
+**Finding Your Network Interface Names:**
+
+To find the correct interface names on Linux, use one of these commands:
+
+```bash
+# List all network interfaces with their IP addresses
+ip addr show
+
+# Or use ifconfig (if installed)
+ifconfig
+
+# Or list interfaces with routing info
+ip route show
+```
+
+Look for interfaces that match your network configuration:
+- **WOL Interface** (`WOL_INTERFACE`): Should be the interface with an IP on your internal/private network (e.g., `192.168.100.x`). Common names: `ens4`, `eth1`, `enp3s0`, etc.
+- **Status Interface** (`STATUS_INTERFACE`): Should be the interface with an IP on your public/LAN network (e.g., `192.168.0.x`). Common names: `ens3`, `eth0`, `enp2s0`, etc.
+
+**Example output:**
+```
+1: lo: <LOOPBACK,UP,LOWER_UP> ...
+2: ens3: <BROADCAST,MULTICAST,UP,LOWER_UP> ...
+    inet 192.168.0.231/24 ...  # This is your STATUS_INTERFACE
+3: ens4: <BROADCAST,MULTICAST,UP,LOWER_UP> ...
+    inet 192.168.100.3/24 ...   # This is your WOL_INTERFACE
+```
 
 **Network Configuration Notes:**
 - **Dual Network Setup:**
   - **Internal Network** (`192.168.100.0/24`): Used for WOL packets
-    - Server: `192.168.100.3`
+    - Server Interface: `ens4` (or your `WOL_INTERFACE`)
+    - Server IP: `192.168.100.3`
     - PC: `192.168.100.1` (wired connection)
   - **Public Network** (`192.168.0.0/24`): Used for status checks and web access
-    - Server: `192.168.0.231` (use in frontend `.env` for `REACT_APP_API_HOST`)
+    - Server Interface: `ens3` (or your `STATUS_INTERFACE`)
+    - Server IP: `192.168.0.231` (use in frontend `.env` for `REACT_APP_API_HOST`)
     - PC: `192.168.0.153` (use for `PC_STATUS_IP`)
 
 ### 3. Frontend Setup
@@ -278,10 +312,12 @@ PC_MAC=00:11:22:33:44:55
 PC_IP=192.168.100.1
 PC_STATUS_IP=192.168.0.153
 BROADCAST=192.168.100.3
+WOL_INTERFACE=ens4
+STATUS_INTERFACE=ens3
 PORT=13579
 ```
 
-**Note:** Replace the values above with your actual PC configuration.
+**Note:** Replace the values above with your actual PC configuration. Make sure to set `WOL_INTERFACE` and `STATUS_INTERFACE` to match your network interface names (use `ip addr show` to find them).
 
 4. **Verify PM2 config file exists:**
 ```bash
@@ -489,7 +525,7 @@ pm2 delete all
    cd backend
    ls -la .env
    cat .env
-   # Should show PC_MAC, PC_IP, and BROADCAST variables
+   # Should show PC_MAC, PC_IP, BROADCAST, WOL_INTERFACE, and STATUS_INTERFACE variables
    ```
 
    b. **Check if port 13579 is already in use:**
@@ -938,6 +974,18 @@ pm2 logs pc-control-frontend
 - Verify the MAC address is correct
 - Check that your router supports Wake-on-LAN broadcasts
 - Ensure the PC is connected to the same network segment
+- **For multi-homed systems:** Verify that `WOL_INTERFACE` is set to the correct interface name (e.g., `ens4` for the internal/private network)
+  - Check your interface names: `ip addr show` or `ifconfig`
+  - Ensure `WOL_INTERFACE` matches the interface connected to the internal network (192.168.100.x)
+  - The interface should have an IP address on the same network as `PC_IP`
+
+**Status checks not working:**
+- **For multi-homed systems:** Verify that `STATUS_INTERFACE` is set to the correct interface name (e.g., `ens3` for the public/LAN network)
+  - Check your interface names: `ip addr show` or `ifconfig`
+  - Ensure `STATUS_INTERFACE` matches the interface connected to the public network (192.168.0.x)
+  - The interface should have an IP address on the same network as `PC_STATUS_IP`
+- Verify that `PC_STATUS_IP` is correct and reachable from the server
+- Test connectivity manually: `ping -I <STATUS_INTERFACE> <PC_STATUS_IP>`
 
 **SSH commands failing:**
 - Ensure SSH is configured and accessible
